@@ -53,4 +53,51 @@ export interface ChartDataPoint {
   technology: number;
 }
 
-export type TabId = "signals" | "lists" | "trends" | "market-intel" | "watchlists";
+export interface HiringChartDataPoint {
+  month: string;
+  healthcare: number;
+  manufacturing: number;
+  technology: number;
+  construction: number;
+}
+
+export interface MarketSector {
+  id: string;
+  name: string;
+  activePostings: number;
+  monthOverMonthGrowth: number;
+  companiesHiring: number;
+}
+
+export interface TopHiringCompany {
+  id: string;
+  name: string;
+  sector: string;
+  location: string;
+  openRoles: number;
+  headcountGrowth: number;
+  topRole: string;
+}
+
+export interface SectorDetail {
+  roles: { title: string; count: number; growth: number }[];
+  regions: { name: string; postings: number; growth: number }[];
+  companies: { name: string; location: string; openRoles: number; headcountGrowth: number; topRole: string }[];
+  trendData: { month: string; postings: number }[];
+}
+
+export interface PipelineEntry {
+  id: string;
+  status: "matched" | "intro_made" | "exploring" | "placed" | "opted_in";
+  companyDescription: string;
+  region: string;
+  sector: string;
+  signal: string;
+  partnerType: string;
+  outcome?: string;
+  daysAgo: number;
+  roles?: string;
+  placementCount?: number;
+}
+
+export type TabId = "market" | "contracts" | "gc-demo" | "signals" | "lists" | "salary" | "trends" | "pipeline" | "priority";

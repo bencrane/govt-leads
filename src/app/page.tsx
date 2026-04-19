@@ -4,17 +4,22 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { TabBar } from "@/components/TabBar";
+import { MarketView } from "@/components/MarketView";
+import { ContractWinnersView } from "@/components/ContractWinnersView";
+import { GCDemoView } from "@/components/GCDemoView";
 import { SignalsView } from "@/components/SignalsView";
 import { ListsView } from "@/components/ListsView";
+import { PipelineView } from "@/components/PipelineView";
 import { CompanyDossier } from "@/components/CompanyDossier";
 import { CommandPalette } from "@/components/CommandPalette";
 import type { Company, TabId } from "@/types";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<TabId>("signals");
+  const [activeTab, setActiveTab] = useState<TabId>("market");
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [commandOpen, setCommandOpen] = useState(false);
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const [anonymized, setAnonymized] = useState(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -38,10 +43,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#09090b]">
-      <Header onCommandOpen={() => setCommandOpen(true)} />
-      <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
+      <Header
+        anonymized={anonymized}
+        onToggleAnonymize={() => setAnonymized((prev) => !prev)}
+      />
+      <TabBar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onCommandOpen={() => setCommandOpen(true)}
+      />
 
       <main className="max-w-[1400px] mx-auto px-5 py-6">
+        {activeTab === "market" && <MarketView />}
+
+        {activeTab === "contracts" && (
+          <ContractWinnersView onCompanyClick={setSelectedCompany} />
+        )}
+
+        {activeTab === "gc-demo" && (
+          <GCDemoView onCompanyClick={setSelectedCompany} />
+        )}
+
         {activeTab === "signals" && (
           <SignalsView onCompanyClick={setSelectedCompany} />
         )}
@@ -53,9 +75,13 @@ export default function Home() {
           />
         )}
 
-        {(activeTab === "trends" ||
-          activeTab === "market-intel" ||
-          activeTab === "watchlists") && (
+        {activeTab === "pipeline" && (
+          <PipelineView anonymized={anonymized} />
+        )}
+
+        {(activeTab === "salary" ||
+          activeTab === "trends" ||
+          activeTab === "priority") && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
