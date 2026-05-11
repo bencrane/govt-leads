@@ -6,8 +6,14 @@ import {
   Building2,
   Banknote,
   MapPin,
+  Award,
+  TrendingUp,
+  Radio,
+  ShieldAlert,
+  AlertTriangle,
+  PackageCheck,
 } from "lucide-react";
-import type { Signal } from "@/types";
+import type { Signal, SignalType } from "@/types";
 import { formatCurrency, timeAgo, cn } from "@/lib/utils";
 
 interface SignalCardProps {
@@ -15,7 +21,18 @@ interface SignalCardProps {
   onClick: () => void;
 }
 
-const signalConfig = {
+const signalConfig: Record<
+  SignalType,
+  {
+    icon: React.ElementType;
+    color: string;
+    bg: string;
+    border: string;
+    glow: string;
+    label: string;
+  }
+> = {
+  // Government market
   contract_win: {
     icon: FileCheck2,
     color: "text-emerald-400",
@@ -48,11 +65,86 @@ const signalConfig = {
     glow: "signal-glow-violet",
     label: "Funding",
   },
+  // FMCSA market
+  new_authority: {
+    icon: Award,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    glow: "signal-glow-green",
+    label: "New Authority",
+  },
+  fleet_expansion: {
+    icon: TrendingUp,
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
+    glow: "signal-glow-blue",
+    label: "Fleet Expansion",
+  },
+  mcs150_update: {
+    icon: Radio,
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/20",
+    glow: "signal-glow-blue",
+    label: "MCS-150 Update",
+  },
+  hazmat_endorsement: {
+    icon: ShieldAlert,
+    color: "text-red-400",
+    bg: "bg-red-500/10",
+    border: "border-red-500/20",
+    glow: "signal-glow-amber",
+    label: "Hazmat Endorsement",
+  },
+  recent_crash: {
+    icon: AlertTriangle,
+    color: "text-amber-400",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/20",
+    glow: "signal-glow-amber",
+    label: "Recent Crash",
+  },
+  inspection_clean: {
+    icon: FileCheck2,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    glow: "signal-glow-green",
+    label: "Clean Inspections",
+  },
+  // SBA + Franchise markets
+  loan_origination: {
+    icon: Banknote,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    glow: "signal-glow-green",
+    label: "Loan Origination",
+  },
+  loan_paid_off: {
+    icon: Award,
+    color: "text-violet-400",
+    bg: "bg-violet-500/10",
+    border: "border-violet-500/20",
+    glow: "signal-glow-violet",
+    label: "Loan Paid In Full",
+  },
+  multi_unit_expansion: {
+    icon: PackageCheck,
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
+    glow: "signal-glow-blue",
+    label: "Unit Expansion",
+  },
 };
 
 export function SignalCard({ signal, onClick }: SignalCardProps) {
   const config = signalConfig[signal.type];
   const Icon = config.icon;
+  const isCurrency = signal.metric === "contract value" || signal.metric === "raised";
 
   return (
     <div
@@ -82,11 +174,11 @@ export function SignalCard({ signal, onClick }: SignalCardProps) {
       </p>
 
       <div className="flex items-center justify-between">
-        {signal.value && (
+        {signal.value !== undefined && (
           <span className={cn("text-sm font-semibold font-mono", config.color)}>
-            {signal.metric === "open roles"
-              ? `${signal.value} roles`
-              : formatCurrency(signal.value)}
+            {isCurrency
+              ? formatCurrency(signal.value)
+              : `${signal.value} ${signal.metric || ""}`}
           </span>
         )}
         <div className="flex items-center gap-1 text-xs text-zinc-500 ml-auto">

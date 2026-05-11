@@ -11,10 +11,10 @@ import {
   Zap,
   Users,
 } from "lucide-react";
-import { pipelineEntries } from "@/data";
 import { PipelineDetailView } from "./PipelineDetailView";
 import type { PipelineEntry } from "@/types";
 import { cn, timeAgo } from "@/lib/utils";
+import { useMarket } from "@/context/MarketContext";
 
 const statusConfig = {
   placed: {
@@ -59,6 +59,8 @@ interface PipelineViewProps {
 }
 
 export function PipelineView({ anonymized }: PipelineViewProps) {
+  const { market } = useMarket();
+  const { pipelineEntries, vocab } = market;
   const [selectedEntry, setSelectedEntry] = useState<PipelineEntry | null>(null);
 
   if (selectedEntry) {
@@ -96,41 +98,41 @@ export function PipelineView({ anonymized }: PipelineViewProps) {
           <div className="flex items-center gap-2 mb-2">
             <Users className="h-3.5 w-3.5 text-emerald-400" />
             <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">
-              Total Placed
+              {vocab.pipelinePlacedLabel}
             </span>
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-400">
             {totalPlaced}
           </div>
           <div className="text-[11px] text-zinc-600 mt-1">
-            workers connected to partners
+            {vocab.pipelinePlacedSub}
           </div>
         </div>
         <div className="rounded-xl bg-zinc-900/80 border border-zinc-800/60 p-4">
           <div className="flex items-center gap-2 mb-2">
             <MessageCircle className="h-3.5 w-3.5 text-blue-400" />
             <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">
-              Active
+              {vocab.pipelineActiveLabel}
             </span>
           </div>
           <div className="text-2xl font-bold font-mono text-zinc-100">
             {activeConversations}
           </div>
           <div className="text-[11px] text-zinc-600 mt-1">
-            conversations in progress
+            {vocab.pipelineActiveSub}
           </div>
         </div>
         <div className="rounded-xl bg-zinc-900/80 border border-zinc-800/60 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Zap className="h-3.5 w-3.5 text-amber-400" />
             <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">
-              Connections
+              {vocab.pipelineConnectionsLabel}
             </span>
           </div>
           <div className="text-2xl font-bold font-mono text-zinc-100">
             {totalEntries}
           </div>
-          <div className="text-[11px] text-zinc-600 mt-1">this quarter</div>
+          <div className="text-[11px] text-zinc-600 mt-1">{vocab.pipelineConnectionsSub}</div>
         </div>
       </div>
 
@@ -193,7 +195,7 @@ export function PipelineView({ anonymized }: PipelineViewProps) {
                   )}
                   {entry.placementCount && (
                     <div className="text-xs font-mono font-semibold text-emerald-400 mt-1">
-                      {entry.placementCount} placed
+                      {entry.placementCount} routed
                     </div>
                   )}
                 </div>

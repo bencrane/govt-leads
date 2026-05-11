@@ -3,8 +3,8 @@
 import { Command } from "cmdk";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Building2, LayoutList, Radio } from "lucide-react";
-import { companies, signalLists, signals } from "@/data";
 import type { Company, TabId } from "@/types";
+import { useMarket } from "@/context/MarketContext";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -21,6 +21,9 @@ export function CommandPalette({
   onListSelect,
   onTabChange,
 }: CommandPaletteProps) {
+  const { market } = useMarket();
+  const { companies, signalLists, signals, vocab } = market;
+
   if (!open) return null;
 
   return (
@@ -45,7 +48,7 @@ export function CommandPalette({
               <div className="flex items-center border-b border-zinc-800 px-4">
                 <Search className="h-4 w-4 text-zinc-500 shrink-0" />
                 <Command.Input
-                  placeholder="Search companies, signals, sectors..."
+                  placeholder={`Search ${vocab.entityNounPlural.toLowerCase()}, signals, ${vocab.listsItemEntityLabel === "carriers" ? "cohorts" : "lists"}...`}
                   className="h-14 w-full bg-transparent text-zinc-100 placeholder:text-zinc-600 outline-none text-[15px] ml-3"
                   autoFocus
                 />
@@ -56,7 +59,7 @@ export function CommandPalette({
                 </Command.Empty>
 
                 <Command.Group
-                  heading="Companies"
+                  heading={vocab.entityNounPlural}
                   className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-zinc-600"
                 >
                   {companies.map((company) => (
@@ -80,14 +83,14 @@ export function CommandPalette({
                         </div>
                       </div>
                       <span className="ml-auto text-[11px] text-zinc-600 font-mono shrink-0">
-                        {company.headcount.toLocaleString()} emp
+                        {company.headcount.toLocaleString()} {vocab.sizeLabel === "Power Units" ? "PU" : "emp"}
                       </span>
                     </Command.Item>
                   ))}
                 </Command.Group>
 
                 <Command.Group
-                  heading="Lists"
+                  heading={vocab.listsTabHeading}
                   className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-zinc-600"
                 >
                   {signalLists.map((list) => (
@@ -107,7 +110,7 @@ export function CommandPalette({
                           {list.name}
                         </div>
                         <div className="text-xs text-zinc-600 truncate">
-                          {list.companyCount} companies &middot; {list.region}
+                          {list.companyCount.toLocaleString()} {vocab.listsItemEntityLabel} &middot; {list.region}
                         </div>
                       </div>
                       <span className="ml-auto text-[11px] text-indigo-400 font-mono font-medium shrink-0">

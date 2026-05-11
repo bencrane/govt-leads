@@ -2,14 +2,16 @@
 
 import { MarketInsight } from "./MarketInsight";
 import { SignalCard } from "./SignalCard";
-import { signals, companies } from "@/data";
 import type { Company } from "@/types";
+import { useMarket } from "@/context/MarketContext";
 
 interface SignalsViewProps {
   onCompanyClick: (company: Company) => void;
 }
 
 export function SignalsView({ onCompanyClick }: SignalsViewProps) {
+  const { market } = useMarket();
+  const { signals, companies, vocab } = market;
   const sortedSignals = [...signals].sort((a, b) => a.daysAgo - b.daysAgo);
 
   return (
@@ -18,10 +20,10 @@ export function SignalsView({ onCompanyClick }: SignalsViewProps) {
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
-          Recent Signals
+          {vocab.signalsTabHeading}
         </h2>
         <span className="text-xs text-zinc-600 font-mono">
-          {signals.length} signals tracked
+          {signals.length} {vocab.signalsTabCounterLabel}
         </span>
       </div>
 

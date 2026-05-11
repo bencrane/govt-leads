@@ -1,4 +1,7 @@
-import type { Company, Signal, SignalList, ChartDataPoint, HiringChartDataPoint, MarketSector, TopHiringCompany, SectorDetail, PipelineEntry } from "@/types";
+import type { Company, Signal, SignalList, TimeSeriesPoint, MarketSector, TopHiringCompany, SectorDetail, PipelineEntry } from "@/types";
+
+type ChartDataPoint = TimeSeriesPoint;
+type HiringChartDataPoint = TimeSeriesPoint;
 
 export const companies: Company[] = [
   {

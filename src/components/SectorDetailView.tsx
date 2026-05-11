@@ -11,12 +11,14 @@ import {
 } from "recharts";
 import { ArrowLeft, MapPin, TrendingUp, Users, Briefcase } from "lucide-react";
 import type { MarketSector, SectorDetail } from "@/types";
+import type { ColorTokens } from "@/lib/colors";
 import { cn } from "@/lib/utils";
+import { useMarket } from "@/context/MarketContext";
 
 interface SectorDetailViewProps {
   sector: MarketSector;
   detail: SectorDetail;
-  color: { text: string; stroke: string; fill: string };
+  color: ColorTokens;
   onBack: () => void;
 }
 
@@ -27,6 +29,8 @@ function formatK(n: number): string {
 }
 
 export function SectorDetailView({ sector, detail, color, onBack }: SectorDetailViewProps) {
+  const { market } = useMarket();
+  const { vocab } = market;
   const maxRoleCount = Math.max(...detail.roles.map((r) => r.count));
 
   return (
@@ -35,7 +39,7 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
         onClick={onBack}
         className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 mb-5 transition-colors"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Market
+        <ArrowLeft className="h-4 w-4" /> {vocab.sectorDetailBackLabel}
       </button>
 
       {/* Header */}
@@ -44,17 +48,17 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
         <div className="flex items-center gap-6 mt-3">
           <div>
             <span className="text-2xl font-bold font-mono text-zinc-100">{formatK(sector.activePostings)}</span>
-            <span className="text-xs text-zinc-500 ml-2">active postings</span>
+            <span className="text-xs text-zinc-500 ml-2">{vocab.sectorOverviewMetricLabel}</span>
           </div>
           <div>
-            <span className={cn("text-lg font-bold font-mono", sector.monthOverMonthGrowth >= 25 ? "text-emerald-400" : "text-zinc-200")}>
+            <span className={cn("text-lg font-bold font-mono", sector.monthOverMonthGrowth >= 15 ? "text-emerald-400" : "text-zinc-200")}>
               +{sector.monthOverMonthGrowth}%
             </span>
             <span className="text-xs text-zinc-500 ml-2">MoM growth</span>
           </div>
           <div>
             <span className="text-lg font-bold font-mono text-zinc-200">{formatK(sector.companiesHiring)}</span>
-            <span className="text-xs text-zinc-500 ml-2">companies hiring</span>
+            <span className="text-xs text-zinc-500 ml-2">{vocab.sectorOverviewTertiaryLabel}</span>
           </div>
         </div>
       </div>
@@ -64,7 +68,7 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="h-4 w-4 text-indigo-400" />
           <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-            Posting Volume — 12 Month Trend
+            {vocab.sectorDetailTrendHeader}
           </h2>
         </div>
         <div className="h-[180px]">
@@ -81,7 +85,10 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
               <YAxis stroke="#3f3f46" tick={{ fill: "#71717a", fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}K`} />
               <Tooltip
                 contentStyle={{ background: "#18181b", border: "1px solid #27272a", borderRadius: "8px", fontSize: "12px", color: "#d4d4d8" }}
-                formatter={(value: number) => [`${value}K postings`, sector.name]}
+                formatter={(value) => {
+                  const v = typeof value === "number" ? value : Number(value);
+                  return [`${v}K ${vocab.sectorDetailTrendUnit}`, sector.name];
+                }}
                 labelStyle={{ color: "#a1a1aa", marginBottom: "4px" }}
               />
               <Area type="monotone" dataKey="postings" stroke={color.stroke} strokeWidth={2} fill="url(#gradSector)" />
@@ -97,7 +104,7 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
           <div className="flex items-center gap-2 mb-4">
             <Briefcase className="h-4 w-4 text-indigo-400" />
             <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-              Roles in Demand
+              {vocab.sectorDetailRolesHeader}
             </h2>
           </div>
           <div className="space-y-3">
@@ -106,7 +113,7 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm text-zinc-200">{role.title}</span>
                   <div className="flex items-center gap-3">
-                    <span className={cn("text-xs font-mono font-medium", role.growth >= 25 ? "text-emerald-400" : "text-zinc-500")}>
+                    <span className={cn("text-xs font-mono font-medium", role.growth >= 20 ? "text-emerald-400" : "text-zinc-500")}>
                       +{role.growth}%
                     </span>
                     <span className="text-sm font-mono font-medium text-zinc-300 w-16 text-right">
@@ -134,7 +141,7 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
           <div className="flex items-center gap-2 mb-4">
             <MapPin className="h-4 w-4 text-indigo-400" />
             <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-              Top Regions
+              {vocab.sectorDetailRegionsHeader}
             </h2>
           </div>
           <div className="space-y-2.5">
@@ -148,7 +155,7 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
                   <span className="text-sm text-zinc-200">{region.name}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className={cn("text-xs font-mono font-medium", region.growth >= 25 ? "text-emerald-400" : "text-zinc-500")}>
+                  <span className={cn("text-xs font-mono font-medium", region.growth >= 20 ? "text-emerald-400" : "text-zinc-500")}>
                     +{region.growth}%
                   </span>
                   <span className="text-sm font-mono font-medium text-zinc-300 w-16 text-right">
@@ -161,25 +168,25 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
         </div>
       </div>
 
-      {/* Companies Hiring */}
+      {/* Companies in this sector */}
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Users className="h-4 w-4 text-indigo-400" />
           <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
-            Top Companies Hiring
+            {vocab.sectorDetailCompaniesHeader}
           </h2>
         </div>
         <div className="rounded-xl bg-zinc-900/80 border border-zinc-800/60 overflow-hidden">
-          <div className="grid grid-cols-[1fr_140px_80px_80px] gap-4 px-4 py-3 border-b border-zinc-800/60 text-[11px] text-zinc-600 uppercase tracking-wider font-medium">
-            <span>Company</span>
-            <span>Top Role</span>
-            <span className="text-right">Open Roles</span>
-            <span className="text-right">Growth</span>
+          <div className="grid grid-cols-[1fr_180px_90px_80px] gap-4 px-4 py-3 border-b border-zinc-800/60 text-[11px] text-zinc-600 uppercase tracking-wider font-medium">
+            <span>{vocab.topEntitiesHeaders.entity}</span>
+            <span>{vocab.topEntitiesHeaders.topRole}</span>
+            <span className="text-right">{vocab.topEntitiesHeaders.openRoles}</span>
+            <span className="text-right">{vocab.topEntitiesHeaders.growth}</span>
           </div>
           {detail.companies.map((company, i) => (
             <div
               key={i}
-              className="grid grid-cols-[1fr_140px_80px_80px] gap-4 px-4 py-3 border-b border-zinc-800/30 hover:bg-zinc-800/40 transition-colors"
+              className="grid grid-cols-[1fr_180px_90px_80px] gap-4 px-4 py-3 border-b border-zinc-800/30 hover:bg-zinc-800/40 transition-colors"
             >
               <div>
                 <span className="text-sm font-medium text-zinc-200">{company.name}</span>
@@ -188,13 +195,13 @@ export function SectorDetailView({ sector, detail, color, onBack }: SectorDetail
                   {company.location}
                 </div>
               </div>
-              <span className="text-xs text-zinc-400 self-center">{company.topRole}</span>
+              <span className="text-xs text-zinc-400 self-center truncate">{company.topRole}</span>
               <span className="text-sm font-mono font-semibold text-blue-400 text-right self-center">
                 {company.openRoles.toLocaleString()}
               </span>
               <span className={cn(
                 "text-sm font-mono font-medium text-right self-center",
-                company.headcountGrowth >= 25 ? "text-emerald-400" : "text-zinc-400"
+                company.headcountGrowth >= 20 ? "text-emerald-400" : "text-zinc-400"
               )}>
                 +{company.headcountGrowth}%
               </span>

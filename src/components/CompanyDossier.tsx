@@ -6,33 +6,46 @@ import {
   MapPin,
   Users,
   TrendingUp,
-  Calendar,
   DollarSign,
   Briefcase,
   FileCheck2,
 } from "lucide-react";
-import type { Company } from "@/types";
-import { signals } from "@/data";
+import type { Company, SignalType } from "@/types";
 import { formatCurrency, timeAgo, cn } from "@/lib/utils";
+import { useMarket } from "@/context/MarketContext";
 
 interface CompanyDossierProps {
   company: Company;
   onClose: () => void;
 }
 
-const signalTypeColor: Record<string, string> = {
+const signalTypeColor: Record<SignalType, string> = {
   contract_win: "text-emerald-400",
   hiring_surge: "text-blue-400",
   expansion: "text-amber-400",
   funding: "text-violet-400",
+  new_authority: "text-emerald-400",
+  fleet_expansion: "text-blue-400",
+  mcs150_update: "text-cyan-400",
+  hazmat_endorsement: "text-red-400",
+  recent_crash: "text-amber-400",
+  inspection_clean: "text-emerald-400",
+  loan_origination: "text-emerald-400",
+  loan_paid_off: "text-violet-400",
+  multi_unit_expansion: "text-blue-400",
 };
 
 export function CompanyDossier({ company, onClose }: CompanyDossierProps) {
+  const { market } = useMarket();
+  const { signals, vocab } = market;
   const companySignals = signals.filter((s) => s.companyId === company.id);
-  const totalJobPostings = company.jobPostings.reduce(
-    (sum, p) => sum + p.count,
-    0
-  );
+  const totalJobPostings = company.jobPostings.reduce((sum, p) => sum + p.count, 0);
+
+  const renderSignalValue = (value: number, metric?: string) => {
+    const isCurrency = metric === "contract value" || metric === "raised";
+    if (isCurrency) return formatCurrency(value);
+    return `${value} ${metric || ""}`.trim();
+  };
 
   return (
     <>
@@ -80,23 +93,23 @@ export function CompanyDossier({ company, onClose }: CompanyDossierProps) {
           <div className="grid grid-cols-4 gap-px bg-zinc-800/40 border-b border-zinc-800/60">
             {[
               {
-                label: "Headcount",
+                label: vocab.dossierStats.headcount,
                 value: company.headcount.toLocaleString(),
                 icon: Users,
               },
               {
-                label: "YoY Growth",
+                label: vocab.dossierStats.growth,
                 value: `+${company.headcountGrowth}%`,
                 icon: TrendingUp,
                 highlight: company.headcountGrowth >= 20,
               },
               {
-                label: "Revenue",
+                label: vocab.dossierStats.revenue,
                 value: company.revenueEstimate,
                 icon: DollarSign,
               },
               {
-                label: "Open Roles",
+                label: vocab.dossierStats.openRoles,
                 value: totalJobPostings.toString(),
                 icon: Briefcase,
               },
@@ -122,7 +135,7 @@ export function CompanyDossier({ company, onClose }: CompanyDossierProps) {
           {companySignals.length > 0 && (
             <div className="p-5 border-b border-zinc-800/60">
               <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                Recent Signals
+                {vocab.dossierSignalsHeader}
               </h3>
               <div className="space-y-2.5">
                 {companySignals.map((signal) => (
@@ -139,16 +152,14 @@ export function CompanyDossier({ company, onClose }: CompanyDossierProps) {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-zinc-200">{signal.headline}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        {signal.value && (
+                        {signal.value !== undefined && (
                           <span
                             className={cn(
                               "text-xs font-mono font-medium",
                               signalTypeColor[signal.type]
                             )}
                           >
-                            {signal.metric === "open roles"
-                              ? `${signal.value} roles`
-                              : formatCurrency(signal.value)}
+                            {renderSignalValue(signal.value, signal.metric)}
                           </span>
                         )}
                         <span className="text-[11px] text-zinc-600">
@@ -162,10 +173,10 @@ export function CompanyDossier({ company, onClose }: CompanyDossierProps) {
             </div>
           )}
 
-          {/* Job Postings */}
+          {/* Activity / Job Postings */}
           <div className="p-5 border-b border-zinc-800/60">
             <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-              Active Job Postings
+              {vocab.dossierActivityHeader}
             </h3>
             <div className="space-y-1.5">
               {company.jobPostings.map((posting, i) => (
@@ -189,20 +200,20 @@ export function CompanyDossier({ company, onClose }: CompanyDossierProps) {
             </div>
           </div>
 
-          {/* Company Info */}
+          {/* Entity Details */}
           <div className="p-5">
             <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-              Company Details
+              {vocab.dossierDetailsHeader}
             </h3>
             <div className="space-y-2.5 text-sm">
               <div className="flex justify-between">
-                <span className="text-zinc-500">Founded</span>
+                <span className="text-zinc-500">{vocab.sectorLabel === "Operating Class" ? "Authority Granted" : "Founded"}</span>
                 <span className="text-zinc-300 font-mono">
                   {company.yearFounded}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Sector</span>
+                <span className="text-zinc-500">{vocab.sectorLabel}</span>
                 <span className="text-zinc-300">{company.sector}</span>
               </div>
               <div className="flex justify-between">

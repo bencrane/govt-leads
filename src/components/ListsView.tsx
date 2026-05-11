@@ -9,9 +9,9 @@ import {
   Users,
   Calendar,
 } from "lucide-react";
-import { signalLists, companies, signals } from "@/data";
 import type { Company, SignalList } from "@/types";
 import { cn } from "@/lib/utils";
+import { useMarket } from "@/context/MarketContext";
 
 interface ListsViewProps {
   onCompanyClick: (company: Company) => void;
@@ -19,6 +19,19 @@ interface ListsViewProps {
 }
 
 export function ListsView({ onCompanyClick, selectedListId }: ListsViewProps) {
+  const { market, persona } = useMarket();
+  const { signalLists, companies, signals, vocab } = market;
+
+  // Sort cohorts so persona-priority cohorts come first, in their declared order
+  const sortedLists = [...signalLists].sort((a, b) => {
+    const aIdx = persona.cohortPriorityIds.indexOf(a.id);
+    const bIdx = persona.cohortPriorityIds.indexOf(b.id);
+    if (aIdx === -1 && bIdx === -1) return 0;
+    if (aIdx === -1) return 1;
+    if (bIdx === -1) return -1;
+    return aIdx - bIdx;
+  });
+
   const [activeList, setActiveList] = useState<SignalList | null>(
     selectedListId
       ? signalLists.find((l) => l.id === selectedListId) || null
@@ -39,7 +52,7 @@ export function ListsView({ onCompanyClick, selectedListId }: ListsViewProps) {
           onClick={() => setActiveList(null)}
           className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 mb-4 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Lists
+          <ArrowLeft className="h-4 w-4" /> Back to {vocab.listsTabHeading}
         </button>
 
         <div className="rounded-xl bg-zinc-900/80 border border-zinc-800/60 p-5 mb-6">
@@ -58,7 +71,7 @@ export function ListsView({ onCompanyClick, selectedListId }: ListsViewProps) {
             </div>
           </div>
           <div className="flex items-center gap-4 mt-4 text-xs text-zinc-500">
-            <span>{activeList.companyCount} companies</span>
+            <span>{activeList.companyCount.toLocaleString()} {vocab.listsItemEntityLabel}</span>
             <span>{activeList.region}</span>
             <span>{activeList.sector}</span>
             <span>{listSignals.length} active signals</span>
@@ -66,7 +79,7 @@ export function ListsView({ onCompanyClick, selectedListId }: ListsViewProps) {
         </div>
 
         <div className="space-y-3">
-          {listCompanies.map((company, i) => {
+          {listCompanies.map((company) => {
             const companySignals = listSignals.filter(
               (s) => s.companyId === company.id
             );
@@ -126,27 +139,36 @@ export function ListsView({ onCompanyClick, selectedListId }: ListsViewProps) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
-          Pre-Built Lists
+          {vocab.listsTabHeading}
         </h2>
         <span className="text-xs text-zinc-600 font-mono">
-          {signalLists.length} active lists
+          {signalLists.length} {vocab.listsTabCounterLabel}
         </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {signalLists.map((list, i) => (
+        {sortedLists.map((list) => {
+          const inPriority = persona.cohortPriorityIds.includes(list.id);
+          return (
           <div
             key={list.id}
             onClick={() => setActiveList(list)}
             className="group cursor-pointer rounded-xl bg-zinc-900/80 border border-zinc-800/60 p-5 hover:bg-zinc-800/80 hover:border-zinc-700/60 transition-all"
           >
             <div className="flex items-start justify-between mb-3">
-              <h3 className="text-[15px] font-semibold text-zinc-100 group-hover:text-white transition-colors">
-                {list.name}
-              </h3>
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                <h3 className="text-[15px] font-semibold text-zinc-100 group-hover:text-white transition-colors">
+                  {list.name}
+                </h3>
+                {inPriority && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider font-medium shrink-0 mt-1">
+                    {persona.label}
+                  </span>
+                )}
+              </div>
               <div
                 className={cn(
-                  "flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-semibold",
+                  "flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-semibold shrink-0 ml-2",
                   list.signalStrength >= 90
                     ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                     : list.signalStrength >= 80
@@ -166,7 +188,7 @@ export function ListsView({ onCompanyClick, selectedListId }: ListsViewProps) {
               <div className="flex items-center gap-3 text-xs text-zinc-500">
                 <span className="flex items-center gap-1">
                   <Building2 className="h-3 w-3" />
-                  {list.companyCount} companies
+                  {list.companyCount.toLocaleString()} {vocab.listsItemEntityLabel}
                 </span>
                 <span>{list.region}</span>
               </div>
@@ -187,7 +209,8 @@ export function ListsView({ onCompanyClick, selectedListId }: ListsViewProps) {
               ))}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

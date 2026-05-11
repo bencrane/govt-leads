@@ -14,7 +14,7 @@ import {
   Anchor,
   Zap,
   UserCheck,
-  Users,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -63,42 +63,47 @@ const defaultContacts = [
 export default function AlignLivePage() {
   const [preparedFor, setPreparedFor] = useState("");
 
-  // Step 1: Company criteria
+  // Their company — enriched before the call
+  const [companyName, setCompanyName] = useState("");
+  const [companyHQ, setCompanyHQ] = useState("");
+  const [companyEmployees, setCompanyEmployees] = useState("");
+  const [companyFounded, setCompanyFounded] = useState("");
+  const [companyWebsite, setCompanyWebsite] = useState("");
+  const [companySpecialties, setCompanySpecialties] = useState("");
+
+  // Pre-Act: Business profile
+  const [placementsLastYear, setPlacementsLastYear] = useState("");
+  const [activeRecruiters, setActiveRecruiters] = useState("");
+  const [avgContractDuration, setAvgContractDuration] = useState("");
+
+  // Act 1: Discovery
+  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [removedRoles, setRemovedRoles] = useState<string[]>([]);
+  const [newRole, setNewRole] = useState("");
+  const [timeToFill, setTimeToFill] = useState("");
+  const [placementType, setPlacementType] = useState("");
+  const [geoReach, setGeoReach] = useState("");
+
+  // The turn
+  const [accepted, setAccepted] = useState(false);
+
+  // Act 2: Onboarding
   const [employeeMin, setEmployeeMin] = useState("150");
   const [employeeMax, setEmployeeMax] = useState("2,000");
   const [revenueMin, setRevenueMin] = useState("$20M");
   const [revenueMax, setRevenueMax] = useState("$300M");
   const [geography, setGeography] = useState("");
   const [growthSignal, setGrowthSignal] = useState("Headcount up >15% YoY");
-
-  // Step 2: Contract filters
   const [contractMin, setContractMin] = useState("$2M");
   const [contractMax, setContractMax] = useState("$50M");
   const [contractWindow, setContractWindow] = useState("90");
   const [agencies, setAgencies] = useState("DoD, VA, GSA, DHS");
   const [naics, setNaics] = useState("");
-
-  // Step 3: Industries (hardball)
-  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
-
-  // Step 4: Roles (hardball)
-  const [roles, setRoles] = useState<string[]>([]);
-  const [removedRoles, setRemovedRoles] = useState<string[]>([]);
-  const [newRole, setNewRole] = useState("");
-
-  // Step 5: Delivery capability (hardball continues)
-  const [timeToFill, setTimeToFill] = useState("");
-  const [placementType, setPlacementType] = useState("");
-  const [geoReach, setGeoReach] = useState("");
-
-  // Step 6: Contacts
   const [contacts, setContacts] = useState(defaultContacts);
-
-  // Step 7: Team
   const [teamSize, setTeamSize] = useState("");
   const [pointPerson, setPointPerson] = useState("");
   const [responseTime, setResponseTime] = useState("48 hours");
-
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -142,6 +147,10 @@ export default function AlignLivePage() {
 
   const allIndustryRoles = industryData.flatMap((d) => d.roles);
   const customRoles = roles.filter((r) => !allIndustryRoles.includes(r));
+  const hasIndustries = selectedIndustries.length > 0;
+
+  const inputClass = "bg-transparent text-sm text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none pb-0.5";
+  const monoInputClass = cn(inputClass, "font-mono");
 
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100">
@@ -156,16 +165,15 @@ export default function AlignLivePage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-10">
-        {/* Title */}
+        {/* Header */}
         <div className="mb-10">
-          <h1 className="text-2xl font-semibold text-zinc-100 mb-2">Connection Criteria</h1>
+          <h1 className="text-2xl font-semibold text-zinc-100 mb-2">Partner Alignment</h1>
           <p className="text-sm text-zinc-500 leading-relaxed mb-4">
-            We use this to filter the companies we&apos;re tracking and only
-            route introductions that are actually relevant. Everything here
-            can be adjusted after we start.
+            We work with a small number of staffing partners per vertical.
+            This call is to figure out if there&apos;s a fit.
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-600">For:</span>
+            <span className="text-xs text-zinc-600">With:</span>
             <input
               type="text" value={preparedFor} onChange={(e) => setPreparedFor(e.target.value)}
               placeholder="Name / Company"
@@ -174,94 +182,144 @@ export default function AlignLivePage() {
           </div>
         </div>
 
-        {/* ── STEP 1: Company Criteria (collaborative, easy) ── */}
-        <div className="mb-10">
-          <div className="flex items-baseline gap-3 mb-1">
-            <h2 className="text-sm font-medium text-zinc-200">Company Criteria</h2>
-          </div>
-          <p className="text-xs text-zinc-600 mb-5">
-            What kind of companies are your sweet spot?
-          </p>
+        {/* ═══════════════════════════════════════════════════
+            THEIR COMPANY — We did our homework
+            ═══════════════════════════════════════════════════ */}
 
-          <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 overflow-hidden">
-            {[
-              { label: "Employee Count", content: (
-                <div className="flex items-center gap-2">
-                  <input value={employeeMin} onChange={(e) => setEmployeeMin(e.target.value)} className="bg-transparent font-mono text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-20 pb-0.5" />
-                  <span className="text-zinc-600">to</span>
-                  <input value={employeeMax} onChange={(e) => setEmployeeMax(e.target.value)} className="bg-transparent font-mono text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-20 pb-0.5" />
-                </div>
-              )},
-              { label: "Revenue Range", content: (
-                <div className="flex items-center gap-2">
-                  <input value={revenueMin} onChange={(e) => setRevenueMin(e.target.value)} className="bg-transparent font-mono text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-20 pb-0.5" />
-                  <span className="text-zinc-600">to</span>
-                  <input value={revenueMax} onChange={(e) => setRevenueMax(e.target.value)} className="bg-transparent font-mono text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-20 pb-0.5" />
-                </div>
-              )},
-              { label: "Geography", content: (
-                <input value={geography} onChange={(e) => setGeography(e.target.value)} placeholder="Regions, states, metros you cover" className="bg-transparent text-sm text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5" />
-              )},
-              { label: "Growth Signal", content: (
-                <input value={growthSignal} onChange={(e) => setGrowthSignal(e.target.value)} className="bg-transparent text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5" />
-              )},
-            ].map((row, i) => (
-              <div key={row.label} className={cn("grid grid-cols-[160px_1fr] gap-4 px-5 py-4", i > 0 && "border-t border-zinc-800/30")}>
-                <span className="text-sm text-zinc-400">{row.label}</span>
-                {row.content}
+        <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 overflow-hidden mb-10">
+          <div className="px-6 py-4 border-b border-zinc-800/40">
+            <div className="flex items-center justify-between">
+              <div>
+                <input
+                  value={companyName} onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Company Name"
+                  className="bg-transparent text-lg font-semibold text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-72 pb-0.5"
+                />
+                <input
+                  value={companyWebsite} onChange={(e) => setCompanyWebsite(e.target.value)}
+                  placeholder="website.com"
+                  className="bg-transparent text-xs text-zinc-600 placeholder:text-zinc-800 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-48 pb-0.5 block mt-1"
+                />
               </div>
-            ))}
+              <span className="text-[10px] text-zinc-700 uppercase tracking-wider">Pre-call research</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-4">
+            <div className="px-5 py-3 border-r border-zinc-800/40">
+              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">HQ</div>
+              <input
+                value={companyHQ} onChange={(e) => setCompanyHQ(e.target.value)}
+                placeholder="City, ST"
+                className="bg-transparent text-sm text-zinc-200 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
+              />
+            </div>
+            <div className="px-5 py-3 border-r border-zinc-800/40">
+              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Employees</div>
+              <input
+                value={companyEmployees} onChange={(e) => setCompanyEmployees(e.target.value)}
+                placeholder="—"
+                className="bg-transparent text-sm font-mono text-zinc-200 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
+              />
+            </div>
+            <div className="px-5 py-3 border-r border-zinc-800/40">
+              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Founded</div>
+              <input
+                value={companyFounded} onChange={(e) => setCompanyFounded(e.target.value)}
+                placeholder="—"
+                className="bg-transparent text-sm font-mono text-zinc-200 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
+              />
+            </div>
+            <div className="px-5 py-3">
+              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Specialties</div>
+              <input
+                value={companySpecialties} onChange={(e) => setCompanySpecialties(e.target.value)}
+                placeholder="—"
+                className="bg-transparent text-sm text-zinc-200 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
+              />
+            </div>
           </div>
         </div>
 
-        {/* ── STEP 2: Contract Filters (you're the expert) ── */}
+        {/* ═══════════════════════════════════════════════════
+            MARKET CONTEXT — The number that sits there
+            ═══════════════════════════════════════════════════ */}
+
+        <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 mb-10 overflow-hidden">
+          <div className="px-6 pt-5 pb-4">
+            <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+              What We&apos;re Tracking Right Now
+            </h2>
+            <p className="text-sm text-zinc-500 leading-relaxed">
+              Across the verticals we monitor, here&apos;s what the last 60 days look like.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 border-t border-zinc-800/40">
+            <div className="px-6 py-4 border-r border-zinc-800/40">
+              <div className="text-2xl font-bold font-mono text-zinc-100">$146.9M</div>
+              <div className="text-[11px] text-zinc-600 mt-0.5">in contract wins tracked</div>
+            </div>
+            <div className="px-6 py-4 border-r border-zinc-800/40">
+              <div className="text-2xl font-bold font-mono text-zinc-100">~850</div>
+              <div className="text-[11px] text-zinc-600 mt-0.5">estimated workers needed</div>
+            </div>
+            <div className="px-6 py-4">
+              <div className="text-2xl font-bold font-mono text-zinc-100">312K</div>
+              <div className="text-[11px] text-zinc-600 mt-0.5">active job postings monitored</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════
+            BUSINESS PROFILE — Are you a real operation?
+            ═══════════════════════════════════════════════════ */}
+
         <div className="mb-10">
-          <h2 className="text-sm font-medium text-zinc-200 mb-1">Government Contract Filters</h2>
+          <h2 className="text-sm font-medium text-zinc-200 mb-1">About Your Operation</h2>
           <p className="text-xs text-zinc-600 mb-5">
-            When a company wins a federal contract, they need labor. These
-            control which wins trigger a connection.
+            Quick background so we can calibrate.
           </p>
 
           <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 overflow-hidden">
-            {[
-              { label: "Contract Size", content: (
-                <div className="flex items-center gap-2">
-                  <input value={contractMin} onChange={(e) => setContractMin(e.target.value)} className="bg-transparent font-mono text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-20 pb-0.5" />
-                  <span className="text-zinc-600">to</span>
-                  <input value={contractMax} onChange={(e) => setContractMax(e.target.value)} className="bg-transparent font-mono text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-20 pb-0.5" />
-                </div>
-              )},
-              { label: "Lookback", content: (
-                <div className="flex items-center gap-2">
-                  <input value={contractWindow} onChange={(e) => setContractWindow(e.target.value)} className="bg-transparent font-mono text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-16 pb-0.5" />
-                  <span className="text-sm text-zinc-600">days</span>
-                </div>
-              )},
-              { label: "Agencies", content: (
-                <input value={agencies} onChange={(e) => setAgencies(e.target.value)} className="bg-transparent text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5" />
-              )},
-              { label: "NAICS Codes", content: (
-                <input value={naics} onChange={(e) => setNaics(e.target.value)} placeholder="Optional — e.g. 332, 336, 541" className="bg-transparent text-sm text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5" />
-              )},
-            ].map((row, i) => (
-              <div key={row.label} className={cn("grid grid-cols-[160px_1fr] gap-4 px-5 py-4", i > 0 && "border-t border-zinc-800/30")}>
-                <span className="text-sm text-zinc-400">{row.label}</span>
-                {row.content}
-              </div>
-            ))}
+            <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4">
+              <span className="text-sm text-zinc-400">Placements last year</span>
+              <input
+                value={placementsLastYear} onChange={(e) => setPlacementsLastYear(e.target.value)}
+                placeholder=""
+                className={cn(inputClass, "font-mono w-24")}
+              />
+            </div>
+            <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4 border-t border-zinc-800/30">
+              <span className="text-sm text-zinc-400">Active recruiters</span>
+              <input
+                value={activeRecruiters} onChange={(e) => setActiveRecruiters(e.target.value)}
+                placeholder=""
+                className={cn(inputClass, "font-mono w-24")}
+              />
+            </div>
+            <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4 border-t border-zinc-800/30">
+              <span className="text-sm text-zinc-400">Avg contract duration</span>
+              <input
+                value={avgContractDuration} onChange={(e) => setAvgContractDuration(e.target.value)}
+                placeholder=""
+                className={cn(inputClass, "w-40")}
+              />
+            </div>
           </div>
         </div>
 
         <div className="border-t border-zinc-800/50 my-10" />
 
-        {/* ── STEP 3: Industries (hardball starts) ── */}
+        {/* ═══════════════════════════════════════════════════
+            ACT 1: DISCOVERY — Are they worth our time?
+            ═══════════════════════════════════════════════════ */}
+
+        {/* Industries */}
         <div className="mb-10">
           <h2 className="text-sm font-medium text-zinc-200 mb-1">
             Industries You Have Experience Staffing
           </h2>
           <p className="text-xs text-zinc-600 mb-4">
             Where do you have a track record and active bench right now?
-            We only route to verticals you can actually deliver in.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {industryData.map((ind) => {
@@ -284,8 +342,8 @@ export default function AlignLivePage() {
           </div>
         </div>
 
-        {/* ── STEP 4: Roles (hardball continues) ── */}
-        {selectedIndustries.length > 0 && (
+        {/* Roles */}
+        {hasIndustries && (
           <div className="mb-10">
             <h2 className="text-sm font-medium text-zinc-200 mb-1">
               Roles You Can Fill Right Now
@@ -343,122 +401,196 @@ export default function AlignLivePage() {
           </div>
         )}
 
-        {/* ── STEP 5: Delivery Capability (hardball continues) ── */}
-        {selectedIndustries.length > 0 && (
+        {/* Delivery Capability */}
+        {hasIndustries && (
           <div className="mb-10">
             <h2 className="text-sm font-medium text-zinc-200 mb-1">
               Delivery Capability
             </h2>
             <p className="text-xs text-zinc-600 mb-5">
-              The companies we introduce you to are actively growing and
-              expect a partner who can move. We need to make sure any
-              intro we make is one you can follow through on.
+              The companies we work with are actively growing and expect a partner
+              who can move. We need to make sure any intro we make is one you
+              can follow through on.
             </p>
 
             <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 overflow-hidden">
               <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4">
                 <span className="text-sm text-zinc-400">Time to fill</span>
-                <input
-                  value={timeToFill} onChange={(e) => setTimeToFill(e.target.value)}
-                  placeholder="How quickly can you get someone started?"
-                  className="bg-transparent text-sm text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
-                />
+                <input value={timeToFill} onChange={(e) => setTimeToFill(e.target.value)} placeholder="How quickly can you get someone started?" className={cn(inputClass, "w-full")} />
               </div>
               <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4 border-t border-zinc-800/30">
                 <span className="text-sm text-zinc-400">Placement type</span>
-                <input
-                  value={placementType} onChange={(e) => setPlacementType(e.target.value)}
-                  placeholder="Contract, contract-to-hire, direct, or mix?"
-                  className="bg-transparent text-sm text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
-                />
+                <input value={placementType} onChange={(e) => setPlacementType(e.target.value)} placeholder="Contract, contract-to-hire, direct, or mix?" className={cn(inputClass, "w-full")} />
               </div>
               <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4 border-t border-zinc-800/30">
                 <span className="text-sm text-zinc-400">Geographic reach</span>
-                <input
-                  value={geoReach} onChange={(e) => setGeoReach(e.target.value)}
-                  placeholder="Can you deploy outside your metro?"
-                  className="bg-transparent text-sm text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
-                />
+                <input value={geoReach} onChange={(e) => setGeoReach(e.target.value)} placeholder="Can you deploy outside your immediate metro?" className={cn(inputClass, "w-full")} />
               </div>
             </div>
           </div>
         )}
 
-        {selectedIndustries.length > 0 && <div className="border-t border-zinc-800/50 my-10" />}
+        {/* ═══════════════════════════════════════════════════
+            THE TURN — "We think this could be a good fit."
+            ═══════════════════════════════════════════════════ */}
 
-        {/* ── STEP 6: Contact Titles (back to collaborative) ── */}
-        {selectedIndustries.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-sm font-medium text-zinc-200 mb-1">
-              Contact Titles
-            </h2>
-            <p className="text-xs text-zinc-600 mb-4">
-              We confirm the right person before making any intro. These are the
-              titles we typically see making staffing decisions — adjust if needed.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {contacts.map((contact, i) => (
-                <div key={i} className="rounded-lg bg-zinc-900/60 border border-zinc-800/40 px-4 py-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <UserCheck className="h-3 w-3 text-zinc-600 shrink-0" />
-                    <input
-                      value={contact.title} onChange={(e) => updateContact(i, "title", e.target.value)}
-                      className="bg-transparent text-sm font-medium text-zinc-200 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
-                    />
-                  </div>
-                  <input
-                    value={contact.context} onChange={(e) => updateContact(i, "context", e.target.value)}
-                    className="bg-transparent text-xs text-zinc-600 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full ml-5 pb-0.5"
-                  />
-                </div>
-              ))}
+        {hasIndustries && !accepted && (
+          <div className="my-12">
+            <div className="border-t border-zinc-800/50" />
+            <div className="flex justify-center -mt-5">
+              <button
+                onClick={() => setAccepted(true)}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-sm font-medium hover:bg-emerald-500/15 hover:border-emerald-500/40 transition-all"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Good fit — proceed with setup
+              </button>
             </div>
           </div>
         )}
 
-        {/* ── STEP 7: Your Team (wind-down, logistics) ── */}
-        {selectedIndustries.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-sm font-medium text-zinc-200 mb-1">Your Team</h2>
-            <p className="text-xs text-zinc-600 mb-5">
-              Who&apos;s on the other end when we make an intro?
-            </p>
+        {/* ═══════════════════════════════════════════════════
+            ACT 2: ONBOARDING — Let's get you in the network
+            ═══════════════════════════════════════════════════ */}
 
-            <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 overflow-hidden">
-              <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4">
-                <span className="text-sm text-zinc-400">Point person</span>
-                <input
-                  value={pointPerson} onChange={(e) => setPointPerson(e.target.value)}
-                  placeholder="Who's taking these meetings?"
-                  className="bg-transparent text-sm text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
-                />
-              </div>
-              <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4 border-t border-zinc-800/30">
-                <span className="text-sm text-zinc-400">Team size</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={teamSize} onChange={(e) => setTeamSize(e.target.value)}
-                    placeholder="e.g. 3"
-                    className="bg-transparent font-mono text-sm text-zinc-100 placeholder:text-zinc-700 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-16 pb-0.5"
-                  />
-                  <span className="text-xs text-zinc-600">people who can take intro meetings</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4 border-t border-zinc-800/30">
-                <span className="text-sm text-zinc-400">Response time</span>
-                <input
-                  value={responseTime} onChange={(e) => setResponseTime(e.target.value)}
-                  className="bg-transparent text-sm text-zinc-100 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Job postings — light mention */}
-        {selectedIndustries.length > 0 && (
+        {accepted && (
           <>
-            <div className="border-t border-zinc-800/50 my-10" />
+            <div className="my-12">
+              <div className="border-t border-emerald-500/20" />
+              <div className="flex items-center gap-2 justify-center -mt-3">
+                <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Proceeding with setup
+                </div>
+              </div>
+              <p className="text-sm text-zinc-500 text-center mt-4">
+                Let&apos;s dial in the specifics so we can start routing.
+              </p>
+            </div>
+
+            {/* Company Criteria */}
+            <div className="mb-10">
+              <h2 className="text-sm font-medium text-zinc-200 mb-1">Company Criteria</h2>
+              <p className="text-xs text-zinc-600 mb-5">
+                What size and type of companies should we route to you?
+              </p>
+
+              <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 overflow-hidden">
+                {[
+                  { label: "Employee Count", content: (
+                    <div className="flex items-center gap-2">
+                      <input value={employeeMin} onChange={(e) => setEmployeeMin(e.target.value)} className={cn(monoInputClass, "w-20")} />
+                      <span className="text-zinc-600">to</span>
+                      <input value={employeeMax} onChange={(e) => setEmployeeMax(e.target.value)} className={cn(monoInputClass, "w-20")} />
+                    </div>
+                  )},
+                  { label: "Revenue Range", content: (
+                    <div className="flex items-center gap-2">
+                      <input value={revenueMin} onChange={(e) => setRevenueMin(e.target.value)} className={cn(monoInputClass, "w-20")} />
+                      <span className="text-zinc-600">to</span>
+                      <input value={revenueMax} onChange={(e) => setRevenueMax(e.target.value)} className={cn(monoInputClass, "w-20")} />
+                    </div>
+                  )},
+                  { label: "Geography", content: (
+                    <input value={geography} onChange={(e) => setGeography(e.target.value)} placeholder="Regions, states, metros" className={cn(inputClass, "w-full")} />
+                  )},
+                  { label: "Growth Signal", content: (
+                    <input value={growthSignal} onChange={(e) => setGrowthSignal(e.target.value)} className={cn(inputClass, "w-full")} />
+                  )},
+                ].map((row, i) => (
+                  <div key={row.label} className={cn("grid grid-cols-[160px_1fr] gap-4 px-5 py-4", i > 0 && "border-t border-zinc-800/30")}>
+                    <span className="text-sm text-zinc-400">{row.label}</span>
+                    {row.content}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Govt Contract Filters */}
+            <div className="mb-10">
+              <h2 className="text-sm font-medium text-zinc-200 mb-1">Government Contract Filters</h2>
+              <p className="text-xs text-zinc-600 mb-5">
+                Which contract wins should trigger a connection?
+              </p>
+
+              <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 overflow-hidden">
+                {[
+                  { label: "Contract Size", content: (
+                    <div className="flex items-center gap-2">
+                      <input value={contractMin} onChange={(e) => setContractMin(e.target.value)} className={cn(monoInputClass, "w-20")} />
+                      <span className="text-zinc-600">to</span>
+                      <input value={contractMax} onChange={(e) => setContractMax(e.target.value)} className={cn(monoInputClass, "w-20")} />
+                    </div>
+                  )},
+                  { label: "Lookback", content: (
+                    <div className="flex items-center gap-2">
+                      <input value={contractWindow} onChange={(e) => setContractWindow(e.target.value)} className={cn(monoInputClass, "w-16")} />
+                      <span className="text-sm text-zinc-600">days</span>
+                    </div>
+                  )},
+                  { label: "Agencies", content: (
+                    <input value={agencies} onChange={(e) => setAgencies(e.target.value)} className={cn(inputClass, "w-full")} />
+                  )},
+                  { label: "NAICS Codes", content: (
+                    <input value={naics} onChange={(e) => setNaics(e.target.value)} placeholder="Optional — e.g. 332, 336, 541" className={cn(inputClass, "w-full")} />
+                  )},
+                ].map((row, i) => (
+                  <div key={row.label} className={cn("grid grid-cols-[160px_1fr] gap-4 px-5 py-4", i > 0 && "border-t border-zinc-800/30")}>
+                    <span className="text-sm text-zinc-400">{row.label}</span>
+                    {row.content}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Contact Titles */}
+            <div className="mb-10">
+              <h2 className="text-sm font-medium text-zinc-200 mb-1">Contact Titles</h2>
+              <p className="text-xs text-zinc-600 mb-4">
+                We confirm the right person before making any intro. Adjust if needed.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {contacts.map((contact, i) => (
+                  <div key={i} className="rounded-lg bg-zinc-900/60 border border-zinc-800/40 px-4 py-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <UserCheck className="h-3 w-3 text-zinc-600 shrink-0" />
+                      <input value={contact.title} onChange={(e) => updateContact(i, "title", e.target.value)}
+                        className="bg-transparent text-sm font-medium text-zinc-200 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full pb-0.5" />
+                    </div>
+                    <input value={contact.context} onChange={(e) => updateContact(i, "context", e.target.value)}
+                      className="bg-transparent text-xs text-zinc-600 border-b border-transparent hover:border-zinc-700 focus:border-indigo-500/50 focus:outline-none w-full ml-5 pb-0.5" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Your Team */}
+            <div className="mb-10">
+              <h2 className="text-sm font-medium text-zinc-200 mb-1">Your Team</h2>
+              <p className="text-xs text-zinc-600 mb-5">
+                Who&apos;s on the other end when we make an intro?
+              </p>
+
+              <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 overflow-hidden">
+                <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4">
+                  <span className="text-sm text-zinc-400">Point person</span>
+                  <input value={pointPerson} onChange={(e) => setPointPerson(e.target.value)} placeholder="Who's taking these meetings?" className={cn(inputClass, "w-full")} />
+                </div>
+                <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4 border-t border-zinc-800/30">
+                  <span className="text-sm text-zinc-400">Team size</span>
+                  <div className="flex items-center gap-2">
+                    <input value={teamSize} onChange={(e) => setTeamSize(e.target.value)} placeholder="e.g. 3" className={cn(monoInputClass, "w-16")} />
+                    <span className="text-xs text-zinc-600">people who can take intro meetings</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-[180px_1fr] gap-4 px-5 py-4 border-t border-zinc-800/30">
+                  <span className="text-sm text-zinc-400">Response time</span>
+                  <input value={responseTime} onChange={(e) => setResponseTime(e.target.value)} className={cn(inputClass, "w-full")} />
+                </div>
+              </div>
+            </div>
+
+            {/* Job postings mention */}
             <div className="mb-10">
               <p className="text-sm text-zinc-500 leading-relaxed">
                 In addition to government contract wins, we monitor active job postings
@@ -469,7 +601,7 @@ export default function AlignLivePage() {
           </>
         )}
 
-        {/* Notes */}
+        {/* Notes — always visible */}
         <div className="mb-10">
           <h2 className="text-sm font-medium text-zinc-200 mb-3">Notes</h2>
           <textarea
@@ -481,7 +613,7 @@ export default function AlignLivePage() {
         </div>
 
         <div className="pt-6 border-t border-zinc-800/30 text-xs text-zinc-700">
-          StaffingEdge · Connection Criteria
+          StaffingEdge · Partner Alignment
         </div>
       </div>
     </div>
