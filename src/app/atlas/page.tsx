@@ -19,29 +19,12 @@ import { getCoords } from "@/lib/geo";
 import type { Company } from "@/types";
 import { cn } from "@/lib/utils";
 
-// Static CSS placeholder sphere — renders synchronously so the globe outline is on the page
-// from frame zero. The real WebGL canvas mounts on top once the dynamic chunk + first frame paint.
-function PlaceholderSphere() {
-  return (
-    <div className="h-full w-full flex items-center justify-center">
-      <div
-        className="rounded-full"
-        style={{
-          width: "82%",
-          height: "82%",
-          background:
-            "radial-gradient(circle at 36% 28%, rgba(31,38,75,0.55) 0%, rgba(14,18,32,0.85) 55%, rgba(8,11,20,0.95) 90%)",
-          boxShadow:
-            "inset 0 0 60px rgba(99,102,241,0.06), 0 0 30px rgba(99,102,241,0.08)",
-        }}
-      />
-    </div>
-  );
-}
-
+// Dynamic-import the WebGL canvas with no loading visual. The page background shows through
+// during the brief chunk-load + WebGL init; the canvas itself stays opacity-0 internally until
+// its camera POV is set to North America, so the first visible frame is the final state.
 const AtlasScene = dynamic(() => import("./AtlasScene"), {
   ssr: false,
-  loading: () => <PlaceholderSphere />,
+  loading: () => null,
 });
 
 // ─────────────────────────────────────────────────────────────────

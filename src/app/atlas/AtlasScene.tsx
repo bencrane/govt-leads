@@ -55,6 +55,10 @@ export default function AtlasScene({
 }: AtlasSceneProps) {
   const globeRef = useRef<any>(null);
   const [countryFeatures, setCountryFeatures] = useState<object[]>(cachedFeatures || []);
+  // Hide canvas until camera is at the correct position — the first three-globe frame
+  // renders at default (Africa, altitude 2.5), and a visible jump from that to North
+  // America at altitude 2.1 reads as a zoom-in. We hide opacity until POV is set.
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (cachedFeatures) return;
@@ -107,9 +111,13 @@ export default function AtlasScene({
       controls.maxDistance = 800;
     }
     globeRef.current.pointOfView({ lat: 39, lng: -98, altitude: 2.1 }, 0);
+    // Wait one animation frame so three-globe paints the corrected camera position
+    // before we reveal the canvas. Prevents the visible Africa-to-NA snap on mount.
+    requestAnimationFrame(() => setReady(true));
   }, []);
 
   return (
+    <div style={{ opacity: ready ? 1 : 0, transition: "none" }}>
     <Globe
       ref={globeRef}
       width={width}
@@ -145,5 +153,6 @@ export default function AtlasScene({
         document.body.style.cursor = point ? "pointer" : "grab";
       }}
     />
+    </div>
   );
 }
